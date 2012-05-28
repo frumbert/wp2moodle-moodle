@@ -1,0 +1,24 @@
+<?php
+    global $OUTPUT;
+    // set to defaults if undefined
+    if (!isset($config->sharedsecret)) {
+        $config->sharedsecret = 'this is not a secure key, change it';
+    }
+?>
+<table cellspacing="0" cellpadding="5" border="0">
+
+<tr valign="top" class="required">
+    <td align="right"><label for="sharedsecret"><?php print_string("auth_wp2moodle_secretkey", "auth_wp2moodle") ?></label></td>
+    <td>
+        <input id="sharedsecret" name="sharedsecret" type="text" size="30" value="<?php echo $config->sharedsecret?>" />
+        <?php
+
+        if (isset($err["sharedsecret"])) {
+            echo $OUTPUT->error_text($err["sharedsecret"]);
+        }
+
+        ?>
+    </td>
+    <td><?php print_string("auth_wp2moodle_secretkey_desc", "auth_wp2moodle") ?></td>
+</tr>
+</table>

@@ -4,6 +4,15 @@
     if (!isset($config->sharedsecret)) {
         $config->sharedsecret = 'this is not a secure key, change it';
     }
+
+    if (!isset($config->timeout)) {
+        $config->timeout = '5';
+    }
+
+    if (!isset($config->logoffurl)) {
+        $config->logoffurl = '';
+    }
+
 ?>
 <table cellspacing="0" cellpadding="5" border="0">
 
@@ -21,4 +30,36 @@
     </td>
     <td><?php print_string("auth_wp2moodle_secretkey_desc", "auth_wp2moodle") ?></td>
 </tr>
+
+<tr valign="top" class="required">
+    <td align="right"><label for="timeout"><?php print_string("auth_wp2moodle_timeout", "auth_wp2moodle") ?></label></td>
+    <td>
+        <input id="timeout" name="timeout" type="text" size="3" maxlength="3" value="<?php echo $config->timeout?>" />
+        <?php
+
+        if (isset($err["timeout"])) {
+            echo $OUTPUT->error_text($err["timeout"]);
+        }
+
+        ?>
+    </td>
+    <td><?php print_string("auth_wp2moodle_timeout_desc", "auth_wp2moodle") ?></td>
+</tr>
+
+<tr valign="top" class="">
+    <td align="right"><label for="logoffurl"><?php print_string("auth_wp2moodle_logoffurl", "auth_wp2moodle") ?></label></td>
+    <td>
+        <input id="logoffurl" name="logoffurl" type="text" size="30" value="<?php echo $config->logoffurl?>" />
+        <?php
+
+        if (isset($err["logoffurl"])) {
+            echo $OUTPUT->error_text($err["logoffurl"]);
+        }
+
+        ?>
+    </td>
+    <td><?php print_string("auth_wp2moodle_logoffurl_desc", "auth_wp2moodle") ?></td>
+</tr>
+
+
 </table>

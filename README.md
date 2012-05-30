@@ -15,3 +15,7 @@ You can not use this plugin directly; it is launched by wp2moodle from within Wo
 Licence:
 --------
 GPL2, as per Moodle.
+
+Download:
+---------
+https://github.com/frumbert/wp2moodle-moodle

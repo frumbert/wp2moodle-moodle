@@ -1,15 +1,14 @@
 <?php
 
 /**
- * @author Martin Dougiamas
+ * @author Tim St.Clair
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package moodle multiauth
+ * @package moodle / wordpress single sign on (wp2moodle)
  *
- * Authentication Plugin: No Authentication
+ * source https://github.com/frumbert/wp2moodle-moodle
+ * Authentication Plugin: Wordpress 2 Moodle Single Sign On
  *
- * No authentication at all. This method approves everything!
- *
- * 2006-08-31  File created.
+ * 2012-05-28  File created.
  */
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -89,6 +88,16 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         return false;
     }
 
+    function logoutpage_hook() {
+        global $SESSION;
+        if (isset($this->config->logoffurl)) {
+            set_moodle_cookie('nobody');
+            require_logout();
+            redirect($this->config->logoffurl);
+        }
+    }
+
+
     /**
      * Prints a form for configuring this authentication plugin.
      *
@@ -109,9 +118,18 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         if (!isset($config->sharedsecret)) {
             $config->sharedsecret = 'this is not a secure key, change it';
         }
+        if (!isset($config->timeout)) {
+            $config->timeout = '5';
+        }
+        if (!isset($config->logoffurl)) {
+            $config->logoffurl = '';
+        }
+
  
         // save settings
         set_config('sharedsecret', $config->sharedsecret, 'auth/wp2moodle');
+        set_config('logoffurl', $config->logoffurl, 'auth/wp2moodle');
+        set_config('timeout', $config->timeout, 'auth/wp2moodle');
 
         return true;
     }

@@ -28,3 +28,11 @@ $string['auth_wp2moodle_secretkey_desc'] = 'Must match Wordpress plugin setting'
 
 $string['auth_wp2moodledescription'] = 'Uses Wordpress user details to create user & log onto Moodle';
 $string['pluginname'] = 'Wordpress 2 Moodle (SSO)';
+
+$string['auth_wp2moodle_timeout'] = 'Link timeout';
+$string['auth_wp2moodle_timeout_desc'] = 'Minutes before incoming link is considered invalid (allow for reading time on Wordpress page)';
+
+$string['auth_wp2moodle_logoffurl'] = 'Logoff Url';
+$string['auth_wp2moodle_logoffurl_desc'] = 'Url to redirect to if the user presses Logoff';
+
+

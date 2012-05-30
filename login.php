@@ -18,6 +18,7 @@ global $CFG, $USER, $SESSION, $DB;
 
 require('../../config.php');
 require_once($CFG->libdir.'/moodlelib.php');
+require_once($CFG->dirroot.'/cohort/lib.php');
 
 // logon may somehow modify this
 $SESSION->wantsurl = $CFG->wwwroot.'/';
@@ -66,13 +67,17 @@ if (!empty($_GET)) {
 	// get the data that was passed in
 	$userdata = decrypt_string($rawdata, $PASSTHROUGH_KEY);
 
+	// time (in minutes) before incoming link is considered invalid
+	$timeout = (integer) get_config('auth/wp2moodle', 'timeout');
+	if ($timeout == 0) { $timeout = 5; }
+
 	// check the timestamp to make sure that the request is still within a few minutes of this servers time
 	// if userdata didn't decrypt, then timestamp will = 0, so following code will be bypassed anyway (e.g. bad data)
 	$timestamp = (integer) get_key_value($userdata, "stamp"); // remote site should have set this to new DateTime("now").getTimestamp(); which is a unix timestamp (utc)
 	$theirs = new DateTime("@$timestamp"); // @ format here: http://www.gnu.org/software/tar/manual/html_node/Seconds-since-the-Epoch.html#SEC127
 	$diff = floatval(date_diff(date_create("now"), $theirs)->format("%i")); // http://www.php.net/manual/en/dateinterval.format.php
 	
-	if ($timestamp > 0 && $diff <= 5) { // less than 5 minutes passed since this link was created, so it's still ok
+	if ($timestamp > 0 && $diff <= $timeout) { // less than N minutes passed since this link was created, so it's still ok
 	
 		$username = trim(moodle_strtolower(get_key_value($userdata, "username")));
 		$hashedpassword = get_key_value($userdata, "passwordhash");
@@ -82,16 +87,37 @@ if (!empty($_GET)) {
 		$idnumber = get_key_value($userdata, "idnumber"); // the users id in the wordpress database, stored here for possible user-matching
 		$cohort = get_key_value($userdata, "cohort"); // the cohort to map the user user; these can be set as enrolment options on one or more courses, if it doesn't exist then skip this step
 
-		// does this user exist (wordpress id is stored as the student id in this db)
+		// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
 		// TODO: make the key column configurable
 		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
-    	// if ($user = get_complete_user_data('username', $username)) {
+    	// if ($user = get_complete_user_data('username', $username)) {}
         // $auth = empty($user->auth) ? 'manual' : $user->auth;  // use manual if auth not set
-        // if ($auth=='nologin' or !is_enabled_auth($auth)) {
-		
-		if (!$DB->record_exists('user', array('idnumber'=>$idnumber))) {
+        // if ($auth=='nologin' or !is_enabled_auth($auth)) {}
+        // if the user/password is ok then ensure the record is synched ()
+
+        if ($DB->record_exists('user', array('username'=>$username, 'idnumber'=>'', 'auth'=>'manual'))) { // update manually created user that has the same username but doesn't yet have the right idnumber
+			$updateuser = get_complete_user_data('username', $username);
+			$updateuser->idnumber = $idnumber;
+			$updateuser->email = $email;
+			$updateuser->firstname = $firstname;
+			$updateuser->lastname = $lastname;
+			// don't update password, we don't know it
+			$updateuser->timemodified = time();
+
+			// make sure we haven't exceeded any field limits
+			$updateuser = truncate_userinfo($updateuser);
+
+			$DB->update_record('user', $updateuser);
+
+			// trigger correct update event
+            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
 			
-			//code based on moodlelib.create_user_record($username, $password, 'manual'), but we want to not perform some stuff
+			// ensure we have the latest data
+			$user = get_complete_user_data('idnumber', $idnumber);
+
+		} else if (!$DB->record_exists('user', array('idnumber'=>$idnumber))) { // create new user
+			
+			//code based on moodlelib.create_user_record($username, $password, 'manual')
 			$auth = 'wp2moodle'; // so they log in with this plugin
 		    $authplugin = get_auth_plugin($auth);
 		    $newuser = new stdClass();
@@ -127,28 +153,26 @@ if (!empty($_GET)) {
 		    $newuser->timecreated = time();
 		    $newuser->timemodified = $newuser->timecreated;
 		    $newuser->mnethostid = $CFG->mnet_localhost_id;
+
+			// make sure we haven't exceeded any field limits
+			$newuser = truncate_userinfo($newuser);
+
 		    $newuser->id = $DB->insert_record('user', $newuser);
 
 		    $user = get_complete_user_data('id', $newuser->id);
 		    events_trigger('user_created', $DB->get_record('user', array('id'=>$user->id)));
 
 		} else {
-			// TODO: update the record to keep it in synch
 			$user = get_complete_user_data('idnumber', $idnumber);
-
 		}
 
-
-		// we now have a user record, be it newly created or existing
 		// if we can find a cohort named what we sent in, enrol this user in that cohort by adding a record to cohort_members
 		if ($DB->record_exists('cohort', array('name'=>$cohort))) {
-	        $cohortrow = $DB->get_record('cohort', array('name'=>$cohort), '*', MUST_EXIST);
+	        $cohortrow = $DB->get_record('cohort', array('name'=>$cohort));
 			if (!$DB->record_exists('cohort_members', array('cohortid'=>$cohortrow->id, 'userid'=>$user->id))) {
-			    $record = new stdClass();
-			    $record->cohortid  = $cohortrow->id;
-			    $record->userid    = $user->id;
-		    	$record->timeadded = time();
-		    	$DB->insert_record('cohort_members', $record);
+
+				// internally triggers cohort_member_added event
+				cohort_add_member($cohortrow->id, $user->id);
 			}
 		}
 		

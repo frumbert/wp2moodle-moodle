@@ -86,7 +86,17 @@ if (!empty($_GET)) {
 		$email = get_key_value($userdata, "email");
 		$idnumber = get_key_value($userdata, "idnumber"); // the users id in the wordpress database, stored here for possible user-matching
 		$cohort = get_key_value($userdata, "cohort"); // the cohort to map the user user; these can be set as enrolment options on one or more courses, if it doesn't exist then skip this step
+        
+        if (empty($lastname) === true)
+            $lastname = ' ';
 
+// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
+		// TODO: make the key column configurable
+		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
+    	// if ($user = get_complete_user_data('username', $username)) {}
+        // $auth = empty($user->auth) ? 'manual' : $user->auth;  // use manual if auth not set
+        // if ($auth=='nologin' or !is_enabled_auth($auth)) {}
+        // if the user/password is ok then ensure the record is synched ()
 		// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
 		// TODO: make the key column configurable
 		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
@@ -115,7 +125,27 @@ if (!empty($_GET)) {
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);
 
-		} else if (!$DB->record_exists('user', array('idnumber'=>$idnumber))) { // create new user
+        } else if ($DB->record_exists('user', array('idnumber'=>$idnumber))) { // update manually created user that has the same username but doesn't yet have the right idnumber
+			$updateuser = get_complete_user_data('username', $username);
+			$updateuser->idnumber = $idnumber;
+			$updateuser->email = $email;
+			$updateuser->firstname = $firstname;
+			$updateuser->lastname = $lastname;
+			// don't update password, we don't know it
+			$updateuser->timemodified = time();
+
+			// make sure we haven't exceeded any field limits
+			$updateuser = truncate_userinfo($updateuser);
+
+			$DB->update_record('user', $updateuser);
+
+			// trigger correct update event
+            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
+			
+			// ensure we have the latest data
+			$user = get_complete_user_data('idnumber', $idnumber);
+			
+		} else { // create new user
 			
 			//code based on moodlelib.create_user_record($username, $password, 'manual')
 			$auth = 'wp2moodle'; // so they log in with this plugin
@@ -141,8 +171,9 @@ if (!empty($_GET)) {
 			$newuser->idnumber = $idnumber;
 		    $newuser->username = $username;
 	        $newuser->password = md5($hashedpassword); // manual auth checks password validity, so we need to set a valid password
+
 	        // $DB->set_field('user', 'password',  $hashedpassword, array('id'=>$user->id));
-	        			$newuser->firstname = $firstname;
+   			$newuser->firstname = $firstname;
 			$newuser->lastname = $lastname;
 			$newuser->email = $email;
 		    if (empty($newuser->lang) || !get_string_manager()->translation_exists($newuser->lang)) {
@@ -162,19 +193,23 @@ if (!empty($_GET)) {
 		    $user = get_complete_user_data('id', $newuser->id);
 		    events_trigger('user_created', $DB->get_record('user', array('id'=>$user->id)));
 
-		} else {
-			$user = get_complete_user_data('idnumber', $idnumber);
 		}
 
 		// if we can find a cohort named what we sent in, enrol this user in that cohort by adding a record to cohort_members
-		if ($DB->record_exists('cohort', array('name'=>$cohort))) {
-	        $cohortrow = $DB->get_record('cohort', array('name'=>$cohort));
+		if ($DB->record_exists('cohort', array('idnumber'=>$cohort))) {
+	        $cohortrow = $DB->get_record('cohort', array('idnumber'=>$cohort));
 			if (!$DB->record_exists('cohort_members', array('cohortid'=>$cohortrow->id, 'userid'=>$user->id))) {
-
 				// internally triggers cohort_member_added event
 				cohort_add_member($cohortrow->id, $user->id);
 			}
-		}
+			
+			// if the plugin auto-opens the course, then find the course this cohort enrols for and set it as the opener link
+			if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
+		        if ($enrolrow = $DB->get_record('enrol', array('enrol'=>'cohort','customint1'=>$cohortrow->id,'status'=>0))) {
+					$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$enrolrow->courseid));
+				}
+			}
+		}		
 		
 		// all that's left to do is to authenticate this user and set up their active session
 	    $authplugin = get_auth_plugin('wp2moodle'); // me!
@@ -184,6 +219,7 @@ if (!empty($_GET)) {
 			complete_user_login($user);
 	        add_to_log(SITEID, 'user', 'login', "view.php?id=$user->id&course=".SITEID,$user->id, 0, $user->id);
 		}
+		
 
 	}
 	

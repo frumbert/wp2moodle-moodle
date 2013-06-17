@@ -124,12 +124,16 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         if (!isset($config->logoffurl)) {
             $config->logoffurl = '';
         }
+        if (!isset($config->autoopen)) {
+            $config->autoopen = 'no';
+        }
 
  
         // save settings
         set_config('sharedsecret', $config->sharedsecret, 'auth/wp2moodle');
         set_config('logoffurl', $config->logoffurl, 'auth/wp2moodle');
         set_config('timeout', $config->timeout, 'auth/wp2moodle');
+		set_config('autoopen', $config->autoopen, 'auth/wp2moodle');
 
         return true;
     }

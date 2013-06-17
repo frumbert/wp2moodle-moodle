@@ -12,6 +12,10 @@
     if (!isset($config->logoffurl)) {
         $config->logoffurl = '';
     }
+    
+    if (!isset($config->autoopen)) {
+    	$config->autoopen = 'no';
+    }
 
 ?>
 <table cellspacing="0" cellpadding="5" border="0">
@@ -61,5 +65,20 @@
     <td><?php print_string("auth_wp2moodle_logoffurl_desc", "auth_wp2moodle") ?></td>
 </tr>
 
+<tr valign="top" class="">
+    <td align="right"><label for="logoffurl"><?php print_string("auth_wp2moodle_autoopen", "auth_wp2moodle") ?></label></td>
+    <td>
+    	<select id="autoopen" name="autoopen">
+    		<option value='yes'<?php if ($config->autoopen=='yes') { echo "selected-'selected'"; } ?>><?php echo get_string('yes') ?></option>
+    		<option value='no'<?php if ($config->autoopen!='yes') { echo "selected='selected'"; } ?>><?php echo get_string('no') ?></option>
+    	</select>
+    	<?php
+	        if (isset($err["autoopen"])) {
+	            echo $OUTPUT->error_text($err["autoopen"]);
+	        }
+        ?>
+    </td>
+    <td><?php print_string("auth_wp2moodle_autoopen_desc", "auth_wp2moodle") ?></td>
+</tr>
 
 </table>

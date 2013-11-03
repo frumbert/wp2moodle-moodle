@@ -5,6 +5,12 @@ This is the Moodle-end of a two-part plugin that allows users to authenticate wi
 
 Data is encrypted at the Wordpress end and handed over a standard http GET request. Only the minimum required information is sent in order to create a Moodle user record. The user is automatically created if not present at the Moodle end, and then authenticated, and (optionally) enrolled in a Cohort.
 
+Demo
+-----
+Go to my wordpress demo site and register yourself, then try the links on the course page.
+
+http://wordpress.frumbert.org/
+
 How to install this plugin
 ---------------------
 Note, this plugin must exist in a folder named "wp2moodle" - rename the zip file or folder before you upload it.

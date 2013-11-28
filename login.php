@@ -79,7 +79,7 @@ if (!empty($_GET)) {
 	
 	if ($timestamp > 0 && $diff <= $timeout) { // less than N minutes passed since this link was created, so it's still ok
 	
-		$username = trim(moodle_strtolower(get_key_value($userdata, "username")));
+		$username = trim(strtolower(get_key_value($userdata, "username"))); // php's tolower, not moodle's
 		$hashedpassword = get_key_value($userdata, "passwordhash");
 		$firstname = get_key_value($userdata, "firstname");
 		$lastname = get_key_value($userdata, "lastname");
@@ -109,7 +109,7 @@ if (!empty($_GET)) {
 			$updateuser->timemodified = time();
 
 			// make sure we haven't exceeded any field limits
-			$updateuser = truncate_userinfo($updateuser);
+			$updateuser = truncate_userinfo((array) $updateuser); // typecast obj to array, works just as well
 
 			$DB->update_record('user', $updateuser);
 
@@ -129,7 +129,7 @@ if (!empty($_GET)) {
 			$updateuser->timemodified = time();
 
 			// make sure we haven't exceeded any field limits
-			$updateuser = truncate_userinfo($updateuser);
+			$updateuser = truncate_userinfo((array) $updateuser);
 
 			$DB->update_record('user', $updateuser);
 
@@ -146,7 +146,7 @@ if (!empty($_GET)) {
 		    $authplugin = get_auth_plugin($auth);
 		    $newuser = new stdClass();
 			if ($newinfo = $authplugin->get_userinfo($username)) {
-				$newinfo = truncate_userinfo($newinfo);
+				$newinfo = truncate_userinfo((array) $newinfo);
 				foreach ($newinfo as $key => $value){
 				    $newuser->$key = $value;
 				}

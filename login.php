@@ -19,6 +19,7 @@ global $CFG, $USER, $SESSION, $DB;
 require('../../config.php');
 require_once($CFG->libdir.'/moodlelib.php');
 require_once($CFG->dirroot.'/cohort/lib.php');
+require_once($CFG->dirroot.'/group/lib.php');
 
 // logon may somehow modify this
 $SESSION->wantsurl = $CFG->wwwroot.'/';
@@ -63,7 +64,6 @@ function get_key_value($string, $key) {
 $rawdata = $_GET['data'];
 if (!empty($_GET)) {
 
-
 	// get the data that was passed in
 	$userdata = decrypt_string($rawdata, $PASSTHROUGH_KEY);
 
@@ -86,17 +86,11 @@ if (!empty($_GET)) {
 		$email = get_key_value($userdata, "email");
 		$idnumber = get_key_value($userdata, "idnumber"); // the users id in the wordpress database, stored here for possible user-matching
 		$cohort = get_key_value($userdata, "cohort"); // the cohort to map the user user; these can be set as enrolment options on one or more courses, if it doesn't exist then skip this step
+		$group = get_key_value($userdata, "group");
         
         if (empty($lastname) === true)
             $lastname = ' ';
 
-// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
-		// TODO: make the key column configurable
-		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
-    	// if ($user = get_complete_user_data('username', $username)) {}
-        // $auth = empty($user->auth) ? 'manual' : $user->auth;  // use manual if auth not set
-        // if ($auth=='nologin' or !is_enabled_auth($auth)) {}
-        // if the user/password is ok then ensure the record is synched ()
 		// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
 		// TODO: make the key column configurable
 		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
@@ -148,7 +142,7 @@ if (!empty($_GET)) {
 		} else { // create new user
 			
 			//code based on moodlelib.create_user_record($username, $password, 'manual')
-			$auth = 'wp2moodle'; // so they log in with this plugin
+			$auth = 'wp2moodle'; // so they log in - and out - with this plugin
 		    $authplugin = get_auth_plugin($auth);
 		    $newuser = new stdClass();
 			if ($newinfo = $authplugin->get_userinfo($username)) {
@@ -195,7 +189,7 @@ if (!empty($_GET)) {
 
 		}
 
-		// if we can find a cohort named what we sent in, enrol this user in that cohort by adding a record to cohort_members
+		// if we can find a cohortid matching what we sent in, enrol this user in that cohort by adding a record to cohort_members
 		if ($DB->record_exists('cohort', array('idnumber'=>$cohort))) {
 	        $cohortrow = $DB->get_record('cohort', array('idnumber'=>$cohort));
 			if (!$DB->record_exists('cohort_members', array('cohortid'=>$cohortrow->id, 'userid'=>$user->id))) {
@@ -208,6 +202,20 @@ if (!empty($_GET)) {
 		        if ($enrolrow = $DB->get_record('enrol', array('enrol'=>'cohort','customint1'=>$cohortrow->id,'status'=>0))) {
 					$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$enrolrow->courseid));
 				}
+			}
+		}
+
+		// also optionally find a groupid we sent in, enrol this user in that group, and optionally open the course
+		if ($DB->record_exists('group', array('idnumber'=>$group))) {
+	        $grouprow = $DB->get_record('group', array('idnumber'=>$group));
+			if (!$DB->record_exists('group_members', array('groupid'=>$grouprow->id, 'userid'=>$user->id))) {
+				// internally triggers groups_member_added event
+				groups_add_member($grouprow->id, $user->id,'enrol_wp2moodle');
+			}
+			
+			// if the plugin auto-opens the course, then find the course this group is for and set it as the opener link
+			if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
+				$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$grouprow->courseid));
 			}
 		}		
 		

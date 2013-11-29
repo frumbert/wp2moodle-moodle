@@ -180,7 +180,7 @@ if (!empty($_GET)) {
 		    $newuser->mnethostid = $CFG->mnet_localhost_id;
 
 			// make sure we haven't exceeded any field limits
-			$newuser = truncate_userinfo($newuser);
+			$newuser = truncate_userinfo((array) $newuser);
 
 		    $newuser->id = $DB->insert_record('user', $newuser);
 

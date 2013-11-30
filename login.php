@@ -11,8 +11,8 @@
  * 2012-05  Created
 **/
 
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+// error_reporting(E_ALL);
+// ini_set('display_errors', '1');
 
 global $CFG, $USER, $SESSION, $DB;
 
@@ -55,14 +55,28 @@ function get_key_value($string, $key) {
     foreach ($list as $pair) {
     	$item = explode( '=', $pair);
 		if (strtolower($key) == strtolower($item[0])) {
+
+
 			return urldecode($item[1]); // not for use in $_GET etc, which is already decoded, however our encoder uses http_build_query() before encrypting
 		}
     }
     return "";
 }
 
+// truncate_userinfo requires and returns an array
+// but we want to send in and return a user object
+function truncate_user($userobj) {
+	$user_array = truncate_userinfo((array) $userobj);
+	$obj = new stdClass();
+	foreach($user_array as $key=>$value) {
+	    $obj->{$key} = $value;
+	}
+	return $obj;
+}
+
 $rawdata = $_GET['data'];
 if (!empty($_GET)) {
+
 
 	// get the data that was passed in
 	$userdata = decrypt_string($rawdata, $PASSTHROUGH_KEY);
@@ -92,7 +106,6 @@ if (!empty($_GET)) {
             $lastname = ' ';
 
 		// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
-		// TODO: make the key column configurable
 		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
     	// if ($user = get_complete_user_data('username', $username)) {}
         // $auth = empty($user->auth) ? 'manual' : $user->auth;  // use manual if auth not set
@@ -109,7 +122,7 @@ if (!empty($_GET)) {
 			$updateuser->timemodified = time();
 
 			// make sure we haven't exceeded any field limits
-			$updateuser = truncate_userinfo((array) $updateuser); // typecast obj to array, works just as well
+			$updateuser = truncate_user($updateuser); // typecast obj to array, works just as well
 
 			$DB->update_record('user', $updateuser);
 
@@ -129,7 +142,7 @@ if (!empty($_GET)) {
 			$updateuser->timemodified = time();
 
 			// make sure we haven't exceeded any field limits
-			$updateuser = truncate_userinfo((array) $updateuser);
+			$updateuser = truncate_user($updateuser);
 
 			$DB->update_record('user', $updateuser);
 
@@ -140,13 +153,12 @@ if (!empty($_GET)) {
 			$user = get_complete_user_data('idnumber', $idnumber);
 			
 		} else { // create new user
-			
 			//code based on moodlelib.create_user_record($username, $password, 'manual')
 			$auth = 'wp2moodle'; // so they log in - and out - with this plugin
 		    $authplugin = get_auth_plugin($auth);
 		    $newuser = new stdClass();
 			if ($newinfo = $authplugin->get_userinfo($username)) {
-				$newinfo = truncate_userinfo((array) $newinfo);
+				$newinfo = truncate_user($newinfo);
 				foreach ($newinfo as $key => $value){
 				    $newuser->$key = $value;
 				}
@@ -180,7 +192,7 @@ if (!empty($_GET)) {
 		    $newuser->mnethostid = $CFG->mnet_localhost_id;
 
 			// make sure we haven't exceeded any field limits
-			$newuser = truncate_userinfo((array) $newuser);
+			$newuser = truncate_user($newuser);
 
 		    $newuser->id = $DB->insert_record('user', $newuser);
 
@@ -206,11 +218,11 @@ if (!empty($_GET)) {
 		}
 
 		// also optionally find a groupid we sent in, enrol this user in that group, and optionally open the course
-		if ($DB->record_exists('group', array('idnumber'=>$group))) {
-	        $grouprow = $DB->get_record('group', array('idnumber'=>$group));
-			if (!$DB->record_exists('group_members', array('groupid'=>$grouprow->id, 'userid'=>$user->id))) {
+		if ($DB->record_exists('groups', array('idnumber'=>$group))) {
+	        $grouprow = $DB->get_record('groups', array('idnumber'=>$group));
+			if (!$DB->record_exists('groups_members', array('groupid'=>$grouprow->id, 'userid'=>$user->id))) {
 				// internally triggers groups_member_added event
-				groups_add_member($grouprow->id, $user->id,'enrol_wp2moodle');
+				groups_add_member($grouprow->id, $user->id); //  not a component ,'enrol_wp2moodle');
 			}
 			
 			// if the plugin auto-opens the course, then find the course this group is for and set it as the opener link

@@ -15,11 +15,11 @@ How to install this plugin
 ---------------------
 Note, this plugin must exist in a folder named "wp2moodle" - rename the zip file or folder before you upload it.
 
-1. Upload/extract this to your moodle/auth folder (should be called "/~/auth/wp2moodle/", where ~ is your Moodle root)
+1. Upload/extract this to your moodle/auth folder (should be called "~/auth/wp2moodle/", where ~ is your Moodle root)
 2. Activate the plugin in the administration / authentication section
 3. Click settings and enter the same shared secret that you enter for the wp2moodle settings in Wordpress
-4. The logoff url will perform a Moodle logout, then redirect to this url. Typically this is your wordpress homepage.
-5. The link timeout is the number of minutes before the incoming link is thought to be invalid (to allow for variances in server times).
+4. The logoff url will perform a Moodle logout, then redirect to this url. You can get it to log off in Wordpress as well by hitting the wordpress-end logout page too; typically this is http://<your-wordpress-url/wp-login.php?action=logout
+5. The link timeout is the number of minutes before the incoming link is thought to be invalid (to allow for variances in server times). This means links that were generated in the past can't be re-used, copied, bookmarked, etc.
 5. Disable any other authentication methods as required. You can still use as many as you like.
 
 Usage:

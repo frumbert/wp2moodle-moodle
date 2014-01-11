@@ -112,12 +112,16 @@ if (!empty($_GET)) {
         // if ($auth=='nologin' or !is_enabled_auth($auth)) {}
         // if the user/password is ok then ensure the record is synched ()
 
+		$updatefields = (get_config('auth/wp2moodle', 'updateuser') == 'yes');
+
         if ($DB->record_exists('user', array('username'=>$username, 'idnumber'=>'', 'auth'=>'manual'))) { // update manually created user that has the same username but doesn't yet have the right idnumber
 			$updateuser = get_complete_user_data('username', $username);
 			$updateuser->idnumber = $idnumber;
-			$updateuser->email = $email;
-			$updateuser->firstname = $firstname;
-			$updateuser->lastname = $lastname;
+			if ($updatefields) {
+				$updateuser->email = $email;
+				$updateuser->firstname = $firstname;
+				$updateuser->lastname = $lastname;
+			}
 			// don't update password, we don't know it
 			$updateuser->timemodified = time();
 
@@ -132,22 +136,25 @@ if (!empty($_GET)) {
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);
 
-        } else if ($DB->record_exists('user', array('idnumber'=>$idnumber))) { // update manually created user that has the same username but doesn't yet have the right idnumber
-			$updateuser = get_complete_user_data('username', $username);
-			$updateuser->idnumber = $idnumber;
-			$updateuser->email = $email;
-			$updateuser->firstname = $firstname;
-			$updateuser->lastname = $lastname;
-			// don't update password, we don't know it
-			$updateuser->timemodified = time();
+        } else if ($DB->record_exists('user', array('idnumber'=>$idnumber))) { // matched user by existing idnumber
+			if ($updatefields) {
+				$updateuser = get_complete_user_data('username', $username);
+				$updateuser->email = $email;
+				$updateuser->firstname = $firstname;
+				$updateuser->lastname = $lastname;
 
-			// make sure we haven't exceeded any field limits
-			$updateuser = truncate_user($updateuser);
+				// make sure we haven't exceeded any field limits
+				$updateuser = truncate_user($updateuser);
 
-			$DB->update_record('user', $updateuser);
+				// when the record was last touched
+				$updateuser->timemodified = time();
 
-			// trigger correct update event
-            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
+				// record the change
+				$DB->update_record('user', $updateuser);
+	
+				// trigger correct update event
+	            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
+			}
 			
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);

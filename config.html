@@ -88,8 +88,8 @@
     <td align="right"><label for="updateuser"><?php print_string("auth_wp2moodle_updateuser", "auth_wp2moodle") ?></label></td>
     <td>
     	<select id="updateuser" name="updateuser">
-    		<option value='yes'<?php if ($config->autoopen=='yes') { echo "selected-'selected'"; } ?>><?php echo get_string('yes') ?></option>
-    		<option value='no'<?php if ($config->autoopen!='yes') { echo "selected='selected'"; } ?>><?php echo get_string('no') ?></option>
+    		<option value='yes'<?php if ($config->updateuser=='yes') { echo "selected-'selected'"; } ?>><?php echo get_string('yes') ?></option>
+    		<option value='no'<?php if ($config->updateuser!='yes') { echo "selected='selected'"; } ?>><?php echo get_string('no') ?></option>
     	</select>
     	<?php
 	        if (isset($err["updateuser"])) {

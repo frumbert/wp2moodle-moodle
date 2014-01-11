@@ -127,6 +127,9 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         if (!isset($config->autoopen)) {
             $config->autoopen = 'no';
         }
+        if (!isset($config->updateuser)) {
+            $config->updateuser = 'yes';
+        }
 
  
         // save settings
@@ -134,6 +137,7 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         set_config('logoffurl', $config->logoffurl, 'auth/wp2moodle');
         set_config('timeout', $config->timeout, 'auth/wp2moodle');
 		set_config('autoopen', $config->autoopen, 'auth/wp2moodle');
+		set_config('updateuser', $config->updateuser, 'auth/wp2moodle');
 
         return true;
     }

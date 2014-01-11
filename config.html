@@ -17,6 +17,9 @@
     	$config->autoopen = 'no';
     }
 
+    if (!isset($config->updateuser)) {
+    	$config->updateuser = 'yes';
+    }
 ?>
 <table cellspacing="0" cellpadding="5" border="0">
 
@@ -79,6 +82,22 @@
         ?>
     </td>
     <td><?php print_string("auth_wp2moodle_autoopen_desc", "auth_wp2moodle") ?></td>
+</tr>
+
+<tr valign="top" class="">
+    <td align="right"><label for="updateuser"><?php print_string("auth_wp2moodle_updateuser", "auth_wp2moodle") ?></label></td>
+    <td>
+    	<select id="updateuser" name="updateuser">
+    		<option value='yes'<?php if ($config->autoopen=='yes') { echo "selected-'selected'"; } ?>><?php echo get_string('yes') ?></option>
+    		<option value='no'<?php if ($config->autoopen!='yes') { echo "selected='selected'"; } ?>><?php echo get_string('no') ?></option>
+    	</select>
+    	<?php
+	        if (isset($err["updateuser"])) {
+	            echo $OUTPUT->error_text($err["updateuser"]);
+	        }
+        ?>
+    </td>
+    <td><?php print_string("auth_wp2moodle_updateuser_desc", "auth_wp2moodle") ?></td>
 </tr>
 
 </table>

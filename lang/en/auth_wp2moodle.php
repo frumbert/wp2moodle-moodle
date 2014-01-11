@@ -37,3 +37,6 @@ $string['auth_wp2moodle_logoffurl_desc'] = 'Url to redirect to if the user press
 
 $string['auth_wp2moodle_autoopen_desc'] = 'Automatically open the cohorts first course after successful auth';
 $string['auth_wp2moodle_autoopen'] = 'Auto open course?';
+
+$string['auth_wp2moodle_updateuser'] = 'Update user profile fields using Wordpress values?';
+$string['auth_wp2moodle_updateuser_desc'] = 'If set, user profile fields such as first and last name will be overwritten each time the SSO occurs. Turn this off if you want to let the user manage their profile fields independantly.';

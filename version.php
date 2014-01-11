@@ -19,12 +19,12 @@
  *
  * @package    auth
  * @subpackage wp2moodle
- * @copyright  2012 Tim St.Clair (http://timstclair.me)
+ * @copyright  2014 Tim St.Clair (http://timstclair.me)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012053000;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2014011100;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2011112900;        // Requires this Moodle version
 $plugin->component = 'auth_wp2moodle';       // Full name of the plugin (used for diagnostics)

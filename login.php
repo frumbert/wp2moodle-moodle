@@ -6,9 +6,11 @@
  * @version 1.0
  * 
  * Moodle-end component of the wpMoodle Wordpress plugin.
- * Accepts user details passed across from Wordpress, creates a user in Moodle, authenticates them, and enrols them in the specified Cohort
+ * Accepts user details passed across from Wordpress, creates a user in Moodle, authenticates them, and enrols them in the specified Cohort(s) or Group(s)
  *
  * 2012-05  Created
+ * 2014-04  Added option to bypass updating user record for existing users
+ *			Added option to enrol user into multiple cohorts or groups by specifying comma-separated list of identifiers
 **/
 
 // error_reporting(E_ALL);
@@ -35,8 +37,8 @@ if (!isset($PASSTHROUGH_KEY)) {
  */
 function decrypt_string($base64, $key) {
 	if (!$base64) { return ""; }
-	$data = str_replace(array('-','_'),array('+','/'),$base64);
-    $mod4 = strlen($data) % 4;
+	$data = str_replace(array('-','_'),array('+','/'),$base64); // manual de-hack url formatting
+    $mod4 = strlen($data) % 4; // base64 length must be evenly divisible by 4
     if ($mod4) {
         $data .= substr('====', $mod4);
     }
@@ -55,8 +57,6 @@ function get_key_value($string, $key) {
     foreach ($list as $pair) {
     	$item = explode( '=', $pair);
 		if (strtolower($key) == strtolower($item[0])) {
-
-
 			return urldecode($item[1]); // not for use in $_GET etc, which is already decoded, however our encoder uses http_build_query() before encrypting
 		}
     }
@@ -92,27 +92,19 @@ if (!empty($_GET)) {
 	$diff = floatval(date_diff(date_create("now"), $theirs)->format("%i")); // http://www.php.net/manual/en/dateinterval.format.php
 	
 	if ($timestamp > 0 && $diff <= $timeout) { // less than N minutes passed since this link was created, so it's still ok
-	
+		
 		$username = trim(strtolower(get_key_value($userdata, "username"))); // php's tolower, not moodle's
 		$hashedpassword = get_key_value($userdata, "passwordhash");
-		$firstname = get_key_value($userdata, "firstname");
-		$lastname = get_key_value($userdata, "lastname");
+		$firstname = get_key_value($userdata, "firstname"); if (empty($firstname)===true) { $firstname = 'no-firstname'; }
+		$lastname = get_key_value($userdata, "lastname"); if (empty($lastname)===true) { $lastname = 'no-lastname'; }
 		$email = get_key_value($userdata, "email");
 		$idnumber = get_key_value($userdata, "idnumber"); // the users id in the wordpress database, stored here for possible user-matching
 		$cohort = get_key_value($userdata, "cohort"); // the cohort to map the user user; these can be set as enrolment options on one or more courses, if it doesn't exist then skip this step
 		$group = get_key_value($userdata, "group");
-        
-        if (empty($lastname) === true)
-            $lastname = ' ';
-
-		// does this user exist (wordpress id is stored as the student id in this db, but we log on with username)
+		$updatefields = (get_key_value($userdata, "updatable") != "false");	// if true or not set, update fields like email, username, etc.
+		
+		// mdl_user.idnumber is the wordpress wp_users.id
 		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
-    	// if ($user = get_complete_user_data('username', $username)) {}
-        // $auth = empty($user->auth) ? 'manual' : $user->auth;  // use manual if auth not set
-        // if ($auth=='nologin' or !is_enabled_auth($auth)) {}
-        // if the user/password is ok then ensure the record is synched ()
-
-		$updatefields = (get_config('auth/wp2moodle', 'updateuser') == 'yes');
 
         if ($DB->record_exists('user', array('username'=>$username, 'idnumber'=>'', 'auth'=>'manual'))) { // update manually created user that has the same username but doesn't yet have the right idnumber
 			$updateuser = get_complete_user_data('username', $username);
@@ -122,12 +114,13 @@ if (!empty($_GET)) {
 				$updateuser->firstname = $firstname;
 				$updateuser->lastname = $lastname;
 			}
-			// don't update password, we don't know it
-			$updateuser->timemodified = time();
+			// do not update username
+			// do not update password, we don't know it
 
 			// make sure we haven't exceeded any field limits
 			$updateuser = truncate_user($updateuser); // typecast obj to array, works just as well
 
+			$updateuser->timemodified = time(); // record that we changed the record
 			$DB->update_record('user', $updateuser);
 
 			// trigger correct update event
@@ -136,26 +129,23 @@ if (!empty($_GET)) {
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);
 
-        } else if ($DB->record_exists('user', array('idnumber'=>$idnumber))) { // matched user by existing idnumber
+        } else if ($DB->record_exists('user', array('idnumber'=>$idnumber))) { // match user on idnumber
 			if ($updatefields) {
 				$updateuser = get_complete_user_data('username', $username);
+				$updateuser->idnumber = $idnumber;
 				$updateuser->email = $email;
 				$updateuser->firstname = $firstname;
 				$updateuser->lastname = $lastname;
+				$updateuser->username = $username;
 
-				// make sure we haven't exceeded any field limits
-				$updateuser = truncate_user($updateuser);
+				$updateuser = truncate_user($updateuser); // make sure we haven't exceeded any field limits
+				$updateuser->timemodified = time(); // when we last changed the data in the record
 
-				// when the record was last touched
-				$updateuser->timemodified = time();
-
-				// record the change
 				$DB->update_record('user', $updateuser);
 	
 				// trigger correct update event
 	            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
 			}
-			
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);
 			
@@ -209,34 +199,44 @@ if (!empty($_GET)) {
 		}
 
 		// if we can find a cohortid matching what we sent in, enrol this user in that cohort by adding a record to cohort_members
-		if ($DB->record_exists('cohort', array('idnumber'=>$cohort))) {
-	        $cohortrow = $DB->get_record('cohort', array('idnumber'=>$cohort));
-			if (!$DB->record_exists('cohort_members', array('cohortid'=>$cohortrow->id, 'userid'=>$user->id))) {
-				// internally triggers cohort_member_added event
-				cohort_add_member($cohortrow->id, $user->id);
-			}
-			
-			// if the plugin auto-opens the course, then find the course this cohort enrols for and set it as the opener link
-			if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
-		        if ($enrolrow = $DB->get_record('enrol', array('enrol'=>'cohort','customint1'=>$cohortrow->id,'status'=>0))) {
-					$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$enrolrow->courseid));
+		if (!empty($cohort)) {
+			$ids = explode(',',$cohort);
+			foreach ($ids as $cohort) {
+				if ($DB->record_exists('cohort', array('idnumber'=>$cohort))) {
+			        $cohortrow = $DB->get_record('cohort', array('idnumber'=>$cohort));
+					if (!$DB->record_exists('cohort_members', array('cohortid'=>$cohortrow->id, 'userid'=>$user->id))) {
+						// internally triggers cohort_member_added event
+						cohort_add_member($cohortrow->id, $user->id);
+					}
+					
+					// if the plugin auto-opens the course, then find the course this cohort enrols for and set it as the opener link
+					if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
+				        if ($enrolrow = $DB->get_record('enrol', array('enrol'=>'cohort','customint1'=>$cohortrow->id,'status'=>0))) {
+							$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$enrolrow->courseid));
+						}
+					}
 				}
 			}
 		}
 
 		// also optionally find a groupid we sent in, enrol this user in that group, and optionally open the course
-		if ($DB->record_exists('groups', array('idnumber'=>$group))) {
-	        $grouprow = $DB->get_record('groups', array('idnumber'=>$group));
-			if (!$DB->record_exists('groups_members', array('groupid'=>$grouprow->id, 'userid'=>$user->id))) {
-				// internally triggers groups_member_added event
-				groups_add_member($grouprow->id, $user->id); //  not a component ,'enrol_wp2moodle');
+		if (!empty($group)) {
+			$ids = explode(',',$group);
+			foreach ($ids as $group) {
+				if ($DB->record_exists('groups', array('idnumber'=>$group))) {
+			        $grouprow = $DB->get_record('groups', array('idnumber'=>$group));
+					if (!$DB->record_exists('groups_members', array('groupid'=>$grouprow->id, 'userid'=>$user->id))) {
+						// internally triggers groups_member_added event
+						groups_add_member($grouprow->id, $user->id); //  not a component ,'enrol_wp2moodle');
+					}
+					
+					// if the plugin auto-opens the course, then find the course this group is for and set it as the opener link
+					if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
+						$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$grouprow->courseid));
+					}
+				}
 			}
-			
-			// if the plugin auto-opens the course, then find the course this group is for and set it as the opener link
-			if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
-				$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$grouprow->courseid));
-			}
-		}		
+		}	
 		
 		// all that's left to do is to authenticate this user and set up their active session
 	    $authplugin = get_auth_plugin('wp2moodle'); // me!
@@ -254,5 +254,4 @@ if (!empty($_GET)) {
 
 // redirect to the homepage
 redirect($SESSION->wantsurl);
-
 ?>

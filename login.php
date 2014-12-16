@@ -124,7 +124,7 @@ if (!empty($_GET)) {
 			$DB->update_record('user', $updateuser);
 
 			// trigger correct update event
-            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
+			\core\event\user_updated::create_from_userid($updateuser->id)->trigger();
 			
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);
@@ -144,7 +144,7 @@ if (!empty($_GET)) {
 				$DB->update_record('user', $updateuser);
 	
 				// trigger correct update event
-	            events_trigger('user_updated', $DB->get_record('user', array('idnumber'=>$idnumber)));
+				\core\event\user_updated::create_from_userid($updateuser->id)->trigger();
 			}
 			// ensure we have the latest data
 			$user = get_complete_user_data('idnumber', $idnumber);
@@ -194,7 +194,7 @@ if (!empty($_GET)) {
 		    $newuser->id = $DB->insert_record('user', $newuser);
 
 		    $user = get_complete_user_data('id', $newuser->id);
-		    events_trigger('user_created', $DB->get_record('user', array('id'=>$user->id)));
+		    \core\event\user_created::create_from_userid($user->id)->trigger();
 
 		}
 
@@ -243,8 +243,7 @@ if (!empty($_GET)) {
 		if ($authplugin->user_login($user->username, null)) {
 			$user->loggedin = true;
 			$user->site     = $CFG->wwwroot;
-			complete_user_login($user);
-	        add_to_log(SITEID, 'user', 'login', "view.php?id=$user->id&course=".SITEID,$user->id, 0, $user->id);
+			complete_user_login($user); // now performs \core\event\user_loggedin event
 		}
 		
 

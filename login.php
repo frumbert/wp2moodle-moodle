@@ -240,7 +240,7 @@ if (!empty($_GET)) {
 		
 		// all that's left to do is to authenticate this user and set up their active session
 	    $authplugin = get_auth_plugin('wp2moodle'); // me!
-		if ($authplugin->user_login($user->username, null)) {
+		if ($authplugin->user_login($user->username, $user->password)) {
 			$user->loggedin = true;
 			$user->site     = $CFG->wwwroot;
 			complete_user_login($user); // now performs \core\event\user_loggedin event

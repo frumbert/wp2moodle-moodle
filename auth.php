@@ -40,6 +40,7 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
      */
     function user_login ($username, $password = null) {
         global $CFG, $DB;
+        if ($password == null || $password == '') { return false; }
         if ($user = $DB->get_record('user', array('username'=>$username, 'mnethostid'=>$CFG->mnet_localhost_id))) {
             return true;
         }

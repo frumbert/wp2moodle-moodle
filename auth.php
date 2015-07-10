@@ -91,9 +91,9 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
 
     function logoutpage_hook() {
         global $SESSION;
+        set_moodle_cookie('nobody');
+        require_logout();
         if (isset($this->config->logoffurl)) {
-            set_moodle_cookie('nobody');
-            require_logout();
             redirect($this->config->logoffurl);
         }
     }
@@ -132,7 +132,7 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
             $config->updateuser = 'yes';
         }
 
- 
+
         // save settings
         set_config('sharedsecret', $config->sharedsecret, 'auth/wp2moodle');
         set_config('logoffurl', $config->logoffurl, 'auth/wp2moodle');

@@ -20,7 +20,7 @@ Note, this plugin must exist in a folder named "wp2moodle" - rename the zip file
 3. Click settings and enter the same shared secret that you enter for the wp2moodle settings in Wordpress
 4. The logoff url will perform a Moodle logout, then redirect to this url. You can get it to log off in Wordpress as well by hitting the wordpress-end logout page too; typically this is http://<your-wordpress-url/wp-login.php?action=logout
 5. The link timeout is the number of minutes before the incoming link is thought to be invalid (to allow for variances in server times). This means links that were generated in the past can't be re-used, copied, bookmarked, etc.
-5. Disable any other authentication methods as required. You can still use as many as you like.
+5. Disable any other authentication methods as required. You can still use as many as you like. Manual enrolments must be enabled on courses that use group enrolment.
 
 Usage:
 ------

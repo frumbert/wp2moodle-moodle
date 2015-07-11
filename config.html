@@ -20,6 +20,11 @@
     if (!isset($config->updateuser)) {
     	$config->updateuser = 'yes';
     }
+
+    if (!isset($config->redirectnoenrol)) {
+    	$config->redirectnoenrol = 'no';
+    }
+
 ?>
 <table cellspacing="0" cellpadding="5" border="0">
 
@@ -98,6 +103,22 @@
         ?>
     </td>
     <td><?php print_string("auth_wp2moodle_updateuser_desc", "auth_wp2moodle") ?></td>
+</tr>
+
+<tr valign="top" class="">
+    <td align="right"><label for="redirectnoenrol"><?php print_string("auth_wp2moodle_redirectnoenrol", "auth_wp2moodle") ?></label></td>
+    <td>
+    	<select id="redirectnoenrol" name="redirectnoenrol">
+    		<option value='yes'<?php if ($config->redirectnoenrol=='yes') { echo "selected-'selected'"; } ?>><?php echo get_string('yes') ?></option>
+    		<option value='no'<?php if ($config->redirectnoenrol!='yes') { echo "selected='selected'"; } ?>><?php echo get_string('no') ?></option>
+    	</select>
+    	<?php
+	        if (isset($err["redirectnoenrol"])) {
+	            echo $OUTPUT->error_text($err["redirectnoenrol"]);
+	        }
+        ?>
+    </td>
+    <td><?php print_string("auth_wp2moodle_redirectnoenrol_desc", "auth_wp2moodle") ?></td>
 </tr>
 
 </table>

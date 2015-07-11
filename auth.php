@@ -2,6 +2,7 @@
 
 /**
  * @author Tim St.Clair
+ * @author Mike Uding <mike@sebsoft.nl> - Only changes from 2015-01.
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package moodle / wordpress single sign on (wp2moodle)
  *
@@ -9,6 +10,7 @@
  * Authentication Plugin: Wordpress 2 Moodle Single Sign On
  *
  * 2012-05-28  File created.
+ * 2015-01-06   Added support for courses to be added via the login hook
  */
 
 if (!defined('MOODLE_INTERNAL')) {
@@ -42,8 +44,8 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         global $CFG, $DB;
         if ($password == null || $password == '') { return false; }
         if ($user = $DB->get_record('user', array('username'=>$username, 'password'=>$password, 'mnethostid'=>$CFG->mnet_localhost_id))) {
-            return true;
-        }
+                return true;
+            }
         return false;
     }
 
@@ -94,7 +96,12 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         set_moodle_cookie('nobody');
         require_logout();
         if (isset($this->config->logoffurl)) {
-            redirect($this->config->logoffurl);
+            // 301: move permanently
+            // 302: found
+            // 303: see other
+            // 307: temporary redirect
+            header("Location: " . $this->config->logoffurl, true, 301);
+            // redirect($this->config->logoffurl);
         }
     }
 
@@ -131,14 +138,18 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         if (!isset($config->updateuser)) {
             $config->updateuser = 'yes';
         }
+        if (!isset($config->redirectnoenrol)) {
+            $config->redirectnoenrol = 'no';
+        }
 
 
         // save settings
         set_config('sharedsecret', $config->sharedsecret, 'auth/wp2moodle');
         set_config('logoffurl', $config->logoffurl, 'auth/wp2moodle');
         set_config('timeout', $config->timeout, 'auth/wp2moodle');
-		set_config('autoopen', $config->autoopen, 'auth/wp2moodle');
-		set_config('updateuser', $config->updateuser, 'auth/wp2moodle');
+        set_config('autoopen', $config->autoopen, 'auth/wp2moodle');
+        set_config('updateuser', $config->updateuser, 'auth/wp2moodle');
+        set_config('redirectnoenrol', $config->redirectnoenrol, 'auth/wp2moodle');
 
         return true;
     }

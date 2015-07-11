@@ -40,3 +40,7 @@ $string['auth_wp2moodle_autoopen'] = 'Auto open course?';
 
 $string['auth_wp2moodle_updateuser'] = 'Update user profile fields using Wordpress values?';
 $string['auth_wp2moodle_updateuser_desc'] = 'If set, user profile fields such as first and last name will be overwritten each time the SSO occurs. Turn this off if you want to let the user manage their profile fields independantly.';
+
+$string['auth_wp2moodle_redirectnoenrol'] = 'Only redirect user to course?';
+$string['auth_wp2moodle_redirectnoenrol_desc'] = 'If set, the user is being redirected to the course. Otherwise the user is enrolled into the course, if that has not been done already.';
+

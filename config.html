@@ -12,7 +12,7 @@
     if (!isset($config->logoffurl)) {
         $config->logoffurl = '';
     }
-    
+
     if (!isset($config->autoopen)) {
     	$config->autoopen = 'no';
     }
@@ -25,6 +25,13 @@
     	$config->redirectnoenrol = 'no';
     }
 
+    if (!isset($config->firstname)) {
+        $config->firstname = 'no-first-name';
+    }
+
+    if (!isset($config->lastname)) {
+        $config->lastname = 'no-last-name';
+    }
 ?>
 <table cellspacing="0" cellpadding="5" border="0">
 
@@ -119,6 +126,22 @@
         ?>
     </td>
     <td><?php print_string("auth_wp2moodle_redirectnoenrol_desc", "auth_wp2moodle") ?></td>
+</tr>
+
+<tr valign="top" class="required">
+    <td align="right"><label for="firstname"><?php print_string("auth_wp2moodle_firstname", "auth_wp2moodle") ?></label></td>
+    <td>
+        <input id="firstname" name="firstname" type="text" size="30" value="<?php echo $config->firstname?>" />
+    </td>
+    <td><?php print_string("auth_wp2moodle_firstname_desc", "auth_wp2moodle") ?></td>
+</tr>
+
+<tr valign="top" class="required">
+    <td align="right"><label for="lastname"><?php print_string("auth_wp2moodle_lastname", "auth_wp2moodle") ?></label></td>
+    <td>
+        <input id="firstname" name="lastname" type="text" size="30" value="<?php echo $config->lastname?>" />
+    </td>
+    <td><?php print_string("auth_wp2moodle_lastname_desc", "auth_wp2moodle") ?></td>
 </tr>
 
 </table>

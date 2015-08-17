@@ -103,8 +103,6 @@ if (!empty($_GET)) {
 	// get the data that was passed in
 	$userdata = decrypt_string($rawdata, $PASSTHROUGH_KEY);
 
-print_r($userdata);
-
 	// time (in minutes) before incoming link is considered invalid
 	$timeout = (integer) get_config('auth/wp2moodle', 'timeout');
 	if ($timeout == 0) { $timeout = 5; }
@@ -118,6 +116,8 @@ print_r($userdata);
 	$diff = floatval(date_diff(date_create("now"), $theirs)->format("%i")); // http://www.php.net/manual/en/dateinterval.format.php
 
 	// check the timestamp to make sure that the request is still within a few minutes of this servers time
+
+
 	if ($timestamp > 0 && $diff <= $timeout) { // less than N minutes passed since this link was created, so it's still ok
 
 		$username = trim(strtolower(get_key_value($userdata, "username"))); // php's tolower, not moodle's
@@ -130,9 +130,7 @@ print_r($userdata);
 		$group_idnumbers = get_key_value($userdata, "group");
 		$course_idnumbers = get_key_value($userdata, "course");
 
-		$section = (integer) get_key_value($userdata, "section"); // section number to start at, > 0
 		$activity = (integer) get_key_value($userdata, "activity"); // activity number to start at, > 0
-
 		$updatefields = (get_key_value($userdata, "updatable") != "false"); // if true or not set, update fields like email, username, etc.
 
 		$courseId = 0; // cache
@@ -165,12 +163,12 @@ print_r($userdata);
 
 		} else if ($DB->record_exists('user', array('idnumber'=>$idnumber))) { // match user on idnumber
 			if ($updatefields) {
-				$updateuser = get_complete_user_data('username', $username);
-				$updateuser->idnumber = $idnumber;
+				$updateuser = get_complete_user_data('idnumber', $idnumber);
+				// $updateuser->idnumber = $idnumber;
 				$updateuser->email = $email;
 				$updateuser->firstname = $firstname;
 				$updateuser->lastname = $lastname;
-				$updateuser->username = $username;
+				// $updateuser->username = $username;
 
 				$updateuser = truncate_user($updateuser); // make sure we haven't exceeded any field limits
 				$updateuser->timemodified = time(); // when we last changed the data in the record
@@ -301,7 +299,7 @@ print_r($userdata);
 				$mod = $DB->get_records_sql('select cm.id, m.name from {course_sections} cs
 						inner join {course_modules} cm on cs.course = cm.course
 						inner join {modules} m on cm.module = m.id
-						where cs.course = ? and cs.visible = 1 and cm.visible = 1 order by cs.sequence', array($courseId), 0, 1); // and cs.section > 0
+						where cs.course = ? and cs.visible = 1 and cm.visible = 1 order by cs.sequence', array($courseId), $activity - 1, 1); // and cs.section > 0
 				if (!empty($mod)) {
 					$mod = array_pop($mod);
 					$SESSION->wantsurl = new moodle_url("/mod/$mod->name/view.php", array("id" => $mod->id));
@@ -322,3 +320,4 @@ print_r($userdata);
 // redirect to the homepage
 redirect($SESSION->wantsurl);
 ?>
+

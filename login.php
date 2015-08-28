@@ -138,11 +138,11 @@ if (!empty($_GET)) {
 		// mdl_user.idnumber is the wordpress wp_users.id
 		// TODO: if (get_field('user', 'id', 'username', $username, 'deleted', 1, '')) ----> error since the user is now deleted
 
-		if ($DB->record_exists('user', array('username'=>$username, 'idnumber'=>'', 'auth'=>'manual'))) { // update manually created user that has the same username but doesn't yet have the right idnumber
+		if ($DB->record_exists('user', array('email'=>$email, 'idnumber'=>'', 'auth'=>'manual'))) { // update manually created user that has the same email but doesn't yet have the right idnumber
 			$updateuser = get_complete_user_data('username', $username);
 			$updateuser->idnumber = $idnumber;
 			if ($updatefields) {
-				$updateuser->email = $email;
+				$updateuser->username = $username;
 				$updateuser->firstname = $firstname;
 				$updateuser->lastname = $lastname;
 			}

@@ -44,3 +44,8 @@ $string['auth_wp2moodle_updateuser_desc'] = 'If set, user profile fields such as
 $string['auth_wp2moodle_redirectnoenrol'] = 'Only redirect user to course?';
 $string['auth_wp2moodle_redirectnoenrol_desc'] = 'If set, the user is being redirected to the course. Otherwise the user is enrolled into the course, if that has not been done already.';
 
+$string['auth_wp2moodle_firstname'] = 'Default first name';
+$string['auth_wp2moodle_firstname_desc'] = 'If no first name is specified by Wordpress, use this value';
+
+$string['auth_wp2moodle_lastname'] = 'Default last name';
+$string['auth_wp2moodle_lastname_desc'] = 'If no last name is specified by Wordpress, use this value';

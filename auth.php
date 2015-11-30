@@ -96,12 +96,13 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         set_moodle_cookie('nobody');
         require_logout();
         if (isset($this->config->logoffurl)) {
+            if (ob_get_level() !== 0) ob_end_clean(); // in case we are inside a buffer
             // 301: move permanently
             // 302: found
             // 303: see other
             // 307: temporary redirect
             header("Location: " . $this->config->logoffurl, true, 301);
-            // redirect($this->config->logoffurl);
+            exit; // flush header
         }
     }
 

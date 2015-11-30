@@ -9,7 +9,7 @@ Demo
 -----
 Go to my wordpress demo site and register yourself, then try the links on the course page.
 
-http://wordpress.frumbert.org/
+http://wp2moodle.coursesuite.ninja/
 
 How to install this plugin
 ---------------------

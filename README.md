@@ -13,7 +13,7 @@ http://wp2moodle.coursesuite.ninja/
 
 How to install this plugin
 ---------------------
-Note, this plugin must exist in a folder named "wp2moodle" - rename the zip file or folder before you upload it.
+Note, this plugin must exist in a folder named "wp2moodle" - rename the zip file or folder before you upload it (preferably use something like `cd moodle/auth/ && git pull https://github.com/frumbert/wp2moodle-moodle wp2moodle` if you have git tools on your server).
 
 1. Upload/extract this to your moodle/auth folder (should be called "~/auth/wp2moodle/", where ~ is your Moodle root)
 2. Activate the plugin in the administration / authentication section

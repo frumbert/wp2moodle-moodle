@@ -35,6 +35,7 @@ If you are having problems, try these first. If you raise an issue, let me know 
 3. Confirm that your shortcode is working in Wordpress
 4. Confirm that you are using the text/string version of an identifier and NOT the numerical id of a course or cohort. the Id Number field is NOT set by default in moodle- you have to add something.
 5. Look in your sites php error log to see if you can see if the plugin is silently throwing an error that you are not seeing on the page.
+6. If you're trying one lookup type (e.g. group) then try switching to a different type (e.g. cohort). This may help me narrow down if it's a particular lookup type that is affected.
 
 Licence:
 --------

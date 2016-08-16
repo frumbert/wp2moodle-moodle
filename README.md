@@ -26,6 +26,16 @@ Usage:
 ------
 You can not use this plugin directly; it is launched by wp2moodle from within Wordpress.
 
+Problems?
+---------
+If you are having problems, try these first. If you raise an issue, let me know ALL the version numbers of your installations, what server platform they are running on, and any relevent error messages, otherwise I won't be able to help.
+
+1. Confirm that you have the requirement met to run the plugin (e.g. mcrypt must be installed and show up in phpinfo)
+2. Confirm that your course has the appropriate enrolment providers set up already (e.g. cohort based enrolment or manual enrolment)
+3. Confirm that your shortcode is working in Wordpress
+4. Confirm that you are using the text/string version of an identifier and NOT the numerical id of a course or cohort. the Id Number field is NOT set by default in moodle- you have to add something.
+5. Look in your sites php error log to see if you can see if the plugin is silently throwing an error that you are not seeing on the page.
+
 Licence:
 --------
 GPL2, as per Moodle.

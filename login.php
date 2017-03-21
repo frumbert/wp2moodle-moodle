@@ -23,30 +23,27 @@ require_once($CFG->dirroot.'/group/lib.php');
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->dirroot."/lib/enrollib.php");
 
-// logon may somehow modify this
 $SESSION->wantsurl = $CFG->wwwroot.'/';
 
-// $PASSTHROUGH_KEY = "the quick brown fox humps the lazy dog"; // must match wp2moodle wordpress plugin setting
 $PASSTHROUGH_KEY = get_config('auth/wp2moodle', 'sharedsecret');
 if (!isset($PASSTHROUGH_KEY)) {
 	echo "Sorry, this plugin has not yet been configured. Please contact the Moodle administrator for details.";
 }
 
 /**
- * Handler for decrypting incoming data (specially handled base-64) in which is encoded a string of key=value pairs
+ * decode a string encrypted with openssl
  */
-function decrypt_string($base64, $key) {
-	if (!$base64) { return ""; }
-	$data = str_replace(array('-','_'),array('+','/'),$base64); // manual de-hack url formatting
-	$mod4 = strlen($data) % 4; // base64 length must be evenly divisible by 4
-	if ($mod4) {
-		$data .= substr('====', $mod4);
+function wp2m_base64_decode($b64) {
+	return base64_decode(str_replace(array('-','_'),array('+','/'),$b64));
+}
+function decrypt_string($data, $key) {
+	if ( base64_encode(base64_decode($key)) === $key){
+		$encryption_key = base64_decode($key);
+	} else {
+		$encryption_key = $key;
 	}
-	$crypttext = base64_decode($data);
-	$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-	$iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-	$decrypttext = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key.$key), $crypttext, MCRYPT_MODE_ECB, $iv);
-	return trim($decrypttext);
+	list($encrypted_data, $iv) = explode('::', wp2m_base64_decode($data), 2);
+	return openssl_decrypt($encrypted_data, 'aes-256-cbc', $encryption_key, 0, $iv);
 }
 
 /**
@@ -116,8 +113,6 @@ if (!empty($_GET)) {
 	$diff = floatval(date_diff(date_create("now"), $theirs)->format("%i")); // http://www.php.net/manual/en/dateinterval.format.php
 
 	// check the timestamp to make sure that the request is still within a few minutes of this servers time
-
-
 	if ($timestamp > 0 && $diff <= $timeout) { // less than N minutes passed since this link was created, so it's still ok
 
 		$username = trim(strtolower(get_key_value($userdata, "username"))); // php's tolower, not moodle's
@@ -290,7 +285,7 @@ if (!empty($_GET)) {
 		}
 
 		// if auto-open is enabled, work out where to start (e.g. course homepage or a particular activity)
-		if (get_config('auth/wp2moodle', 'autoopen') == 'yes')  {
+		if (get_config('auth/wp2moodle', 'autoopen') !== 'no')  {
 			if ($courseId > 0) {
 				$SESSION->wantsurl = new moodle_url('/course/view.php', array('id'=>$courseId));
 			}
@@ -316,6 +311,8 @@ if (!empty($_GET)) {
 		}
 	}
 }
+
+
 
 // redirect to the homepage
 redirect($SESSION->wantsurl);

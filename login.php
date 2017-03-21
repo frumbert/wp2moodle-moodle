@@ -36,8 +36,18 @@ if (!isset($PASSTHROUGH_KEY)) {
 function wp2m_base64_decode($b64) {
 	return base64_decode(str_replace(array('-','_'),array('+','/'),$b64));
 }
+function wp2m_is_base64($string) {
+    $decoded = base64_decode($string, true);
+    // Check if there is no invalid character in string
+    if (!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $string)) return false;
+    // Decode the string in strict mode and send the response
+    if (!base64_decode($string, true)) return false;
+    // Encode and compare it to original one
+    if (base64_encode($decoded) != $string) return false;
+    return true;
+}
 function decrypt_string($data, $key) {
-	if ( base64_encode(base64_decode($key)) === $key){
+	if ( wp2m_is_base64($key)) {
 		$encryption_key = base64_decode($key);
 	} else {
 		$encryption_key = $key;

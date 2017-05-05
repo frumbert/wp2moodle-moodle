@@ -7,9 +7,9 @@ Data is encrypted (using aes-256-cbc via openssl) at the Wordpress end and hande
 
 Demo
 -----
-Go to my wordpress demo site and register yourself, then try the links on the course page.
+Go to my wordpress demo site and register yourself, then try the links on the course page. There's more documentation over there too.
 
-http://wp2moodle.coursesuite.ninja/
+http://wp2moodle.coursesuite.ninja/docs/wp2moodle/overview/
 
 How to install this plugin
 ---------------------

@@ -5,6 +5,10 @@ This is the Moodle-end of a two-part plugin that allows users to authenticate wi
 
 Data is encrypted (using aes-256-cbc via openssl) at the Wordpress end and handed over a standard http GET request. Only the minimum required information is sent in order to create a Moodle user record. The user is automatically created if not present at the Moodle end, and then authenticated, and (optionally) enrolled in a Cohort, a Group, or both.
 
+Requirements
+------------
+Moodle 2.7 or above (tested up to 3.3) on this fork; see branches for older versions.
+
 Demo
 -----
 Go to my wordpress demo site and register yourself, then try the links on the course page. There's more documentation over there too.
@@ -39,5 +43,5 @@ If you are having problems, try these first. If you raise an issue, let me know 
 
 Licence:
 --------
-GPL2, as per Moodle.
+GPL3, as per Moodle.
 

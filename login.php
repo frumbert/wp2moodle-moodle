@@ -262,14 +262,12 @@ if (!empty($_GET)) {
 			foreach ($ids as $group) {
 				if ($DB->record_exists('groups', array('idnumber'=>$group))) {
 					$grouprow = $DB->get_record('groups', array('idnumber'=>$group));
-					enrol_into_course($grouprow->courseid, $user->id);
+					$courseId = $grouprow->courseid;
+					enrol_into_course($courseId, $user->id);
 					if (!$DB->record_exists('groups_members', array('groupid'=>$grouprow->id, 'userid'=>$user->id))) {
 						// internally triggers groups_member_added event
 						groups_add_member($grouprow->id, $user->id); //  not a component ,'enrol_wp2moodle');
 					}
-
-					// if the plugin auto-opens the course, then find the course this group is for and set it as the opener link
-					$courseId = $grouprow->courseid;
 				}
 			}
 		}
@@ -301,13 +299,18 @@ if (!empty($_GET)) {
 			}
 			// if an activity is specified, then work out its url.
 			if ($activity > 0) {
-				$mod = $DB->get_records_sql('select cm.id, m.name from {course_sections} cs
-						inner join {course_modules} cm on cs.course = cm.course
-						inner join {modules} m on cm.module = m.id
-						where cs.course = ? and cs.visible = 1 and cm.visible = 1 order by cs.sequence', array($courseId), $activity - 1, 1); // and cs.section > 0
-				if (!empty($mod)) {
-					$mod = array_pop($mod);
-					$SESSION->wantsurl = new moodle_url("/mod/$mod->name/view.php", array("id" => $mod->id));
+				$course = get_course($courseId);
+				$modinfo = get_fast_modinfo($course);
+				$index = 0;
+				foreach ($modinfo->get_cms() as $cmid => $cm) {
+					if ($cm->uservisible && $cm->available) {
+						if ($index === $activity) {
+							// echo PHP_EOL . $index, ".", $cmid, " name=", $cm->modname, ", name=" . $cm->name;//. "=>" . $cm;
+							$SESSION->wantsurl = new moodle_url("/mod/" . $cm->modname . "/view.php", array("id" => $cmid));
+							break;
+						}
+						$index += 1;
+					}
 				}
 			}
 		}

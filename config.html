@@ -32,6 +32,11 @@
     if (!isset($config->lastname)) {
         $config->lastname = 'no-last-name';
     }
+
+    if (!isset($config->idprefix)) {
+        $config->idprefix = '';
+    }
+
 ?>
 <table cellspacing="0" cellpadding="5" border="0">
 
@@ -139,9 +144,16 @@
 <tr valign="top" class="required">
     <td align="right"><label for="lastname"><?php print_string("auth_wp2moodle_lastname", "auth_wp2moodle") ?></label></td>
     <td>
-        <input id="firstname" name="lastname" type="text" size="30" value="<?php echo $config->lastname?>" />
+        <input id="lastname" name="lastname" type="text" size="30" value="<?php echo $config->lastname?>" />
     </td>
     <td><?php print_string("auth_wp2moodle_lastname_desc", "auth_wp2moodle") ?></td>
 </tr>
 
+<tr valign="top" class="required">
+    <td align="right"><label for="idprefix"><?php print_string("auth_wp2moodle_idprefix", "auth_wp2moodle") ?></label></td>
+    <td>
+        <input id="idprefix" name="idprefix" type="text" size="10" value="<?php echo $config->idprefix?>" />
+    </td>
+    <td><?php print_string("auth_wp2moodle_idprefix_desc", "auth_wp2moodle") ?></td>
+</tr>
 </table>

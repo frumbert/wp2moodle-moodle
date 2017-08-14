@@ -115,7 +115,8 @@ if (!empty($_GET)) {
 	if ($timeout == 0) { $timeout = 5; }
 
 	$default_firstname = get_config('auth/wp2moodle', 'firstname') ?: "no-firstname"; // php 5.3 ternary
-	$default_lastname = get_config('auth/wp2/moodle', 'lastname') ?: "no-lastname";
+	$default_lastname = get_config('auth/wp2moodle', 'lastname') ?: "no-lastname";
+	$idnumber_prefix = get_config('auth/wp2moodle', 'idprefix') ?: "";
 
 	// if userdata didn't decrypt, then timestamp will = 0, so following code will be bypassed anyway (e.g. bad data)
 	$timestamp = (integer) get_key_value($userdata, "stamp"); // remote site should have set this to new DateTime("now").getTimestamp(); which is a unix timestamp (utc)
@@ -130,7 +131,7 @@ if (!empty($_GET)) {
 		$firstname = get_key_value($userdata, "firstname") ?: $default_firstname;
 		$lastname = get_key_value($userdata, "lastname") ?: $default_lastname;
 		$email = get_key_value($userdata, "email");
-		$idnumber = get_key_value($userdata, "idnumber"); // the users id in the wordpress database, stored here for possible user-matching
+		$idnumber = $idnumber_prefix . get_key_value($userdata, "idnumber"); // the users id in the wordpress database, stored here for possible user-matching, optionaly prefixed to avoid clashes
 		$cohort_idnumbers = get_key_value($userdata, "cohort"); // the cohort to map the user user; these can be set as enrolment options on one or more courses, if it doesn't exist then skip this step
 		$group_idnumbers = get_key_value($userdata, "group");
 		$course_idnumbers = get_key_value($userdata, "course");

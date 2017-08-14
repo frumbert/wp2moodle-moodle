@@ -49,3 +49,6 @@ $string['auth_wp2moodle_firstname_desc'] = 'If no first name is specified by Wor
 
 $string['auth_wp2moodle_lastname'] = 'Default last name';
 $string['auth_wp2moodle_lastname_desc'] = 'If no last name is specified by Wordpress, use this value';
+
+$string['auth_wp2moodle_idprefix'] = 'Prefix for user idnumber';
+$string['auth_wp2moodle_idprefix_desc'] = 'Optional string value to store ahead of the idnumber to avoid clashes (suggested: WP2M). Warning: changing this after user have enrolled may disassociate their existing user records; apply with caution.';

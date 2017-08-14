@@ -142,7 +142,9 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         if (!isset($config->redirectnoenrol)) {
             $config->redirectnoenrol = 'no';
         }
-
+        if (!isset($config->idprefix)) {
+            $config->idprefix = '';
+        }
 
         // save settings
         set_config('sharedsecret', $config->sharedsecret, 'auth/wp2moodle');
@@ -151,6 +153,7 @@ class auth_plugin_wp2moodle extends auth_plugin_base {
         set_config('autoopen', $config->autoopen, 'auth/wp2moodle');
         set_config('updateuser', $config->updateuser, 'auth/wp2moodle');
         set_config('redirectnoenrol', $config->redirectnoenrol, 'auth/wp2moodle');
+        set_config('idprefix', $config->idprefix, 'auth/wp2moodle');
 
         return true;
     }

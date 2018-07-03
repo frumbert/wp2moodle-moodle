@@ -13,7 +13,7 @@ Demo
 -----
 Go to my wordpress demo site and register yourself, then try the links on the course page. There's more documentation over there too.
 
-http://wp2moodle.coursesuite.ninja/docs/wp2moodle/overview/
+http://wp2moodle.coursesuite.ninja/
 
 How to install this plugin
 ---------------------

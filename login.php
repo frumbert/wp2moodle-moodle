@@ -137,6 +137,8 @@ if (!empty($_GET)) {
 		$course_idnumbers = get_key_value($userdata, "course");
 
 		$activity = (integer) get_key_value($userdata, "activity"); // activity number to start at, > 0
+		$enrolas = get_key_value($userdata, "enrolas"); // enrol as this role (shortname)
+		if (empty($enrolas)) $enrolas = "student";
 		$updatefields = (get_key_value($userdata, "updatable") != "false"); // if true or not set, update fields like email, username, etc.
 
 		$courseId = 0; // cache
@@ -276,8 +278,8 @@ if (!empty($_GET)) {
 		// also optionally find a courseid we sent in, enrol this user in that course
 		if (!empty($course_idnumbers)) {
 
-			// find in table roles, record with shortname = student
-			$studentrow = $DB->get_record('role', array('shortname'=>'student'));
+			// find in table roles, record with shortname = specified enrolas value (typically student)
+			$studentrow = $DB->get_record('role', array('shortname'=>$enrolas));
 			$ids = explode(',', $course_idnumbers);
 
 			foreach ($ids as $course) {

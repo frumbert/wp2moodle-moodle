@@ -1,3 +1,6 @@
+**this codebase has been archived and a new version of the plugin is now at https://github.com/frumbert/wp2moodle.**
+
+
 wp2moodle--moodle
 =================
 
